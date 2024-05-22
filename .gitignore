@@ -6,6 +6,20 @@ __pycache__/
 # C extensions
 *.so
 
+# Virtual environment
+venv/
+
+# Archived code files
+archive/
+
+# Secrets
+*.json
+
+# Test files
+*.xlsx
+template.py
+test.py
+
 # Distribution / packaging
 .Python
 build/
