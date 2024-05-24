@@ -3,3 +3,8 @@ requests==2.32.2
 ebaysdk==2.2.0
 python-dotenv==1.0.1
 ebay-rest==1.0.1
+gspread==6.1.2
+google-api-python-client==2.130.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0
+typing==3.7.4.3
