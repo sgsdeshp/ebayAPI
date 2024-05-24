@@ -1,9 +1,10 @@
 """A class for interacting with Google Sheets."""
 
+from typing import Dict, List, Union
+
 import gspread
 import pandas as pd
 from google.oauth2.service_account import Credentials
-from typing import List, Dict, Union
 
 scopes = [
     "https://www.googleapis.com/auth/spreadsheets",
