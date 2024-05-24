@@ -27,7 +27,7 @@ class GoogleSheet:
 
         Args:
             worksheet (str): The name of the worksheet to update.
-            cell (str): The address of the cell to update.
+            cell (str): The address of the cell to update. Eg.: A1.
             value (Any): The new value to set in the cell.
 
         Returns:
@@ -57,7 +57,7 @@ class GoogleSheet:
 
         Args:
             worksheet (str): The name of the worksheet.
-            cell (str): The address of the cell.
+            cell (str): The address of the cell. Eg.: A1.
 
         Returns:
             str | int | float: The value of the cell.
