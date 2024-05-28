@@ -4,12 +4,18 @@ import sys
 import json
 from urllib.parse import unquote
 import requests
-from dotenv import load_dotenv
+from config import (
+    FBB_EBAY_API_KEY,
+    FBB_EBAY_APP_ID,
+    FBB_EBAY_DEV_ID,
+    FBB_EBAY_REDIRECT_URI,
+    FBB_EBAY_CERT_ID,
+    TOKEN,
+)
 import base64
 
 
-load_dotenv()
-API_KEY = os.getenv("api_key")
+API_KEY = FBB_EBAY_API_KEY
 
 
 def main():
