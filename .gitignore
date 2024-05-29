@@ -8,6 +8,7 @@ __pycache__/
 
 # Archived code files
 archive/
+backup/
 
 # Secrets
 *.json
@@ -16,6 +17,7 @@ archive/
 *.xlsx
 template.py
 test.py
+commands.txt
 
 # Distribution / packaging
 .Python
