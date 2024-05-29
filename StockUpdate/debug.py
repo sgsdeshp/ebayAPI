@@ -132,5 +132,7 @@ for item in all_items:
                 print(f"  Variation Quantity: {variation_quantity}")
                 print(f"  Variation Price: {variation_price}")
 
+                if variation_sku == "N/A":
+                    print(f"  Variation with quantity 0: {variation}")
+
     print("=" * 30)
-print("Total items:", len(all_items))

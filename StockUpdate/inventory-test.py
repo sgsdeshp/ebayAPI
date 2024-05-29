@@ -1,6 +1,6 @@
 import base64
 from token_gen import refresh_access_token
-
+from test import get_stock_data
 import requests
 from config import (
     FBB_EBAY_API_KEY,
@@ -96,28 +96,14 @@ params["UnsoldList"]["Pagination"]["PageNumber"] = 1
 # Fetch unsold listings
 fetch_listings("UnsoldList")
 
-# Print the listings
+# Example dictionary with SKU and stock values
+sku_stock_dict = get_stock_data()
+
+# Prepare the inventory status update
+inventory_status_list = []
+
 for item in all_items:
-    title = item.get("Title", "N/A")
     item_id = item.get("ItemID", "N/A")
-    start_price = item.get("StartPrice", {}).get("_value_", "N/A")
-    current_price = (
-        item.get("SellingStatus", {}).get("CurrentPrice", {}).get("_value_", "N/A")
-    )
-    hit_count = item.get("HitCount", "N/A")
-    condition = item.get("ConditionDisplayName", "N/A")
-    quantity_available = item.get("QuantityAvailable", "N/A")
-    sku = item.get("SKU", "N/A")
-
-    print(f"Title: {title}")
-    print(f"Item ID: {item_id}")
-    print(f"Start Price: {start_price}")
-    print(f"Current Price: {current_price}")
-    print(f"Hits: {hit_count}")
-    print(f"Condition: {condition}")
-    print(f"Quantity Available: {quantity_available}")
-    print(f"SKU: {sku}")
-
     if "Variations" in item:
         variations = item["Variations"].get("Variation", [])
         if isinstance(variations, dict):
@@ -125,12 +111,29 @@ for item in all_items:
         for variation in variations:
             if isinstance(variation, dict):
                 variation_sku = variation.get("SKU", "N/A")
-                variation_quantity = variation.get("Quantity", "N/A")
-                variation_price = variation.get("StartPrice", {}).get("_value_", "N/A")
+                if variation_sku in sku_stock_dict:
+                    inventory_status_list.append(
+                        {
+                            "ItemID": item_id,
+                            "SKU": variation_sku,
+                            "Quantity": sku_stock_dict[variation_sku],
+                        }
+                    )
+inventory_status_list = [{"ItemID": "276170086545", "SKU": "20702H", "Quantity": 8}]
 
-                print(f"  Variation SKU: {variation_sku}")
-                print(f"  Variation Quantity: {variation_quantity}")
-                print(f"  Variation Price: {variation_price}")
+# Call ReviseInventoryStatus for each SKU
+for inventory_status in inventory_status_list:
+    print(
+        f"Updating ItemID: {inventory_status['ItemID']}, SKU: {inventory_status['SKU']} to Quantity: {inventory_status['Quantity']}"
+    )
+    try:
+        response = trading_api.execute(
+            "ReviseInventoryStatus", {"InventoryStatus": inventory_status}
+        ).dict()
+        print("Update response:", response)
+    except Exception as e:
+        print(
+            f"Error updating ItemID: {inventory_status['ItemID']}, SKU: {inventory_status['SKU']} - {e}"
+        )
 
-    print("=" * 30)
-print("Total items:", len(all_items))
+print("Stock update completed.")
