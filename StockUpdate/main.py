@@ -25,37 +25,49 @@ trading_api = Trading(
     warnings=True,
 )
 
-# Set the parameters for the GetSellerList API call
+# Set the parameters for the GetMyeBaySelling API call
 params = {
     "DetailLevel": "ReturnAll",
-    "EndTimeFrom": "2024-04-01T00:00:00.000Z",
-    "EndTimeTo": "2024-06-01T00:00:00.000Z",
-    "EntriesPerPage": 200,  # Set the desired number of results per page
-    "PageNumber": 1,  # Start with the first page
-    "Pagination": {  # Add the Pagination container
-        "EntriesPerPage": 200,  # Set the desired number of results per page
-        "PageNumber": 1,  # Start with the first page
+    "ActiveList": {
+        "Include": True,
+        "Pagination": {
+            "EntriesPerPage": 200,
+            "PageNumber": 1,
+        },
+    },
+    "UnsoldList": {
+        "Include": True,
+        "Pagination": {
+            "EntriesPerPage": 200,
+            "PageNumber": 1,
+        },
     },
 }
 
 all_items = []
 
 while True:
-    print(f"Requesting page {params['PageNumber']}...")
-    response = trading_api.execute("GetSellerList", params).dict()
+    print(
+        f"Requesting active listings page {params['ActiveList']['Pagination']['PageNumber']}..."
+    )
+    response = trading_api.execute("GetMyeBaySelling", params).dict()
     print("Response:", response)
 
-    if "ItemArray" in response and response["ItemArray"] is not None:
-        items = response["ItemArray"].get("Item", [])
-        print("Items:", items)
+    if "ActiveList" in response and response["ActiveList"] is not None:
+        items = response["ActiveList"].get("ItemArray", {}).get("Item", [])
+        print("Active items:", items)
         all_items.extend(items)
     else:
-        print("'ItemArray' key not found or is None in response")
+        print("'ActiveList' key not found or is None in response")
 
-    if "PaginationResult" in response:
-        total_pages = int(response["PaginationResult"].get("TotalNumberOfPages", 1))
+    if "PaginationResult" in response.get("ActiveList", {}):
+        total_pages = int(
+            response["ActiveList"]["PaginationResult"].get("TotalNumberOfPages", 1)
+        )
         current_page = int(
-            response["PaginationResult"].get("PageNumber", params["PageNumber"])
+            response["ActiveList"]["PaginationResult"].get(
+                "PageNumber", params["ActiveList"]["Pagination"]["PageNumber"]
+            )
         )
 
         print(f"Current page: {current_page}, Total pages: {total_pages}")
@@ -67,17 +79,58 @@ while True:
         break
 
     # Move to the next page
-    params["PageNumber"] += 1
-    params["Pagination"]["PageNumber"] += 1
+    params["ActiveList"]["Pagination"]["PageNumber"] += 1
+
+# Reset pagination for unsold items
+params["UnsoldList"]["Pagination"]["PageNumber"] = 1
+
+while True:
+    print(
+        f"Requesting unsold listings page {params['UnsoldList']['Pagination']['PageNumber']}..."
+    )
+    response = trading_api.execute("GetMyeBaySelling", params).dict()
+    print("Response:", response)
+
+    if "UnsoldList" in response and response["UnsoldList"] is not None:
+        items = response["UnsoldList"].get("ItemArray", {}).get("Item", [])
+        print("Unsold items:", items)
+        all_items.extend(items)
+    else:
+        print("'UnsoldList' key not found or is None in response")
+
+    if "PaginationResult" in response.get("UnsoldList", {}):
+        total_pages = int(
+            response["UnsoldList"]["PaginationResult"].get("TotalNumberOfPages", 1)
+        )
+        current_page = int(
+            response["UnsoldList"]["PaginationResult"].get(
+                "PageNumber", params["UnsoldList"]["Pagination"]["PageNumber"]
+            )
+        )
+
+        print(f"Current page: {current_page}, Total pages: {total_pages}")
+
+        if current_page >= total_pages:
+            break
+    else:
+        print("No pagination information in response, assuming only one page.")
+        break
+
+    # Move to the next page
+    params["UnsoldList"]["Pagination"]["PageNumber"] += 1
 
 # Print the listings
 for item in all_items:
     title = item.get("Title", "N/A")
     item_id = item.get("ItemID", "N/A")
     start_price = item.get("StartPrice", {}).get("_value_", "N/A")
-    current_price = item.get("CurrentPrice", {}).get("_value_", "N/A")
+    current_price = (
+        item.get("SellingStatus", {}).get("CurrentPrice", {}).get("_value_", "N/A")
+    )
     hit_count = item.get("HitCount", "N/A")
     condition = item.get("ConditionDisplayName", "N/A")
+    quantity_available = item.get("QuantityAvailable", "N/A")
+    sku = item.get("SKU", "N/A")
 
     print(f"Title: {title}")
     print(f"Item ID: {item_id}")
@@ -85,4 +138,17 @@ for item in all_items:
     print(f"Current Price: {current_price}")
     print(f"Hits: {hit_count}")
     print(f"Condition: {condition}")
+    print(f"Quantity Available: {quantity_available}")
+    print(f"SKU: {sku}")
+
+    if "Variations" in item:
+        for variation in item["Variations"]["Variation"]:
+            variation_sku = variation.get("SKU", "N/A")
+            variation_quantity = variation.get("Quantity", "N/A")
+            variation_price = variation.get("StartPrice", {}).get("_value_", "N/A")
+
+            print(f"  Variation SKU: {variation_sku}")
+            print(f"  Variation Quantity: {variation_quantity}")
+            print(f"  Variation Price: {variation_price}")
+
     print("=" * 30)
