@@ -1,6 +1,6 @@
 import base64
 from token_gen import refresh_access_token
-from test import get_stock_data
+from test import get_stock_data, convert_to_csv
 import requests
 from config import (
     FBB_EBAY_API_KEY,
@@ -119,21 +119,19 @@ for item in all_items:
                             "Quantity": sku_stock_dict[variation_sku],
                         }
                     )
-inventory_status_list = [{"ItemID": "276170086545", "SKU": "20702H", "Quantity": 8}]
 
-# Call ReviseInventoryStatus for each SKU
-for inventory_status in inventory_status_list:
-    print(
-        f"Updating ItemID: {inventory_status['ItemID']}, SKU: {inventory_status['SKU']} to Quantity: {inventory_status['Quantity']}"
-    )
+# Call ReviseInventoryStatus for each batch of SKUs
+batch_size = 4
+for i in range(0, len(inventory_status_list), batch_size):
+    batch = inventory_status_list[i : i + batch_size]
+    print(f"Updating batch: {batch}")
     try:
         response = trading_api.execute(
-            "ReviseInventoryStatus", {"InventoryStatus": inventory_status}
+            "ReviseInventoryStatus", {"InventoryStatus": batch}
         ).dict()
         print("Update response:", response)
     except Exception as e:
-        print(
-            f"Error updating ItemID: {inventory_status['ItemID']}, SKU: {inventory_status['SKU']} - {e}"
-        )
+        print(f"Error updating batch: {batch} - {e}")
+        pass
 
 print("Stock update completed.")
