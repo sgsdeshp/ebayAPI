@@ -1,6 +1,7 @@
 import base64
 from token_gen import refresh_access_token
 from test import get_stock_data, convert_to_csv
+from utils.notifications import send_email
 import requests
 from config import (
     FBB_EBAY_API_KEY,
@@ -135,3 +136,6 @@ for i in range(0, len(inventory_status_list), batch_size):
         pass
 
 print("Stock update completed.")
+
+# Send email notification
+send_email("support@puremoto.co.uk", "Ebay Stock.", "Stock update completed.")

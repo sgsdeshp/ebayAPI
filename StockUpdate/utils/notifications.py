@@ -3,12 +3,12 @@ import json
 
 
 def send_email(receiver, subject, body):
-    """_summary_
+    """sends email
 
     Args:
-        receiver (_type_): sends emails
-        subject (_type_): _description_
-        body (_type_): _description_
+        receiver (str): receiver email
+        subject (str): _subject_
+        body (str): _body_
     """
     url = "https://europe-west2-shad-automation.cloudfunctions.net/notification-email"
     headers = {"Content-Type": "application/json"}
